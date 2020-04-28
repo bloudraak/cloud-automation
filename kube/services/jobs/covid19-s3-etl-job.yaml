@@ -1,8 +1,8 @@
-# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-s3-etl-job.yaml S3_BUCKET $S3_BUCKET JOB_NAME $JOB_NAME | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
+# gen3 job run covid19-s3-etl S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: covid19-s3-etl-#COVID19_JOB_NAME_PLACEHOLDER#
+  name: covid19-s3-etl
 spec:
   backoffLimit: 0
   template:
@@ -17,8 +17,6 @@ spec:
         env:
         - name: S3_BUCKET
           GEN3_S3_BUCKET|-value: ""-|
-        - name: JOB_NAME
-          GEN3_JOB_NAME|-value: ""-|
         - name: doSlack
           GEN3_DO_SLACK|-value: "true"-|
         - name: gen3Env
@@ -41,7 +39,7 @@ spec:
           - |
             message="SUCCESS: covid19-s3-etl success in $gen3Env"
             result=0
-            if ! python3 /covid19-etl/s3_etl_main.py; then
+            if ! bash /covid19-etl/s3_etl.sh; then
               result=1
               message="FAIL: covid19-s3-etl failure in $gen3Env"
             fi
